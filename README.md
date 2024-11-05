@@ -47,6 +47,24 @@ An interactive web application for exploring drug interactions, properties, and 
 
 ## 🚀 Getting Started
 
+## Environment Setup
+
+1. Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Update `.env` with your database credentials:
+   ```
+   DB_USER=your_username
+   DB_PASSWORD=your_password
+   DB_HOST=your_host
+   DB_PORT=1234
+   DB_NAME=your_db
+   ```
+
+3. Never commit your `.env` file to version control!
+
 ### Prerequisites
 - Python 3.8+
 - PostgreSQL database with ChEMBL data
