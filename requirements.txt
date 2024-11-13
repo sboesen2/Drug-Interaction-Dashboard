@@ -9,4 +9,4 @@ python-dotenv
 kaleido
 Pillow
 pyvis
-rdkit
+rdkit-pypi>=2023.9.1  # Use rdkit-pypi instead of rdkit
