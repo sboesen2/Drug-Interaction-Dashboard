@@ -9,3 +9,4 @@ python-dotenv
 kaleido
 Pillow
 pyvis
+rdkit
