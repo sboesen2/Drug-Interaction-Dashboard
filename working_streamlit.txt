@@ -1,0 +1,145 @@
+import streamlit as st
+import pandas as pd
+import os
+from api.data_queries import (
+    search_drugs,
+    get_drug_details,
+    get_drug_properties,
+    get_drug_interactions,
+    engine
+)
+import logging
+from sqlalchemy import text
+
+# Configure logging
+logging.basicConfig(
+    level=os.getenv('LOG_LEVEL', 'INFO'),
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+# Initialize session state if needed
+if 'db_connected' not in st.session_state:
+    st.session_state.db_connected = False
+
+# Test database connection only once per session
+if not st.session_state.db_connected:
+    try:
+        with engine.connect() as conn:
+            # Modified query execution with proper SQLAlchemy syntax
+            result = conn.execute(text("SELECT 1"))
+            value = result.scalar()
+            if value == 1:
+                st.session_state.db_connected = True
+                st.success("✅ Database connected successfully!")
+    except Exception as e:
+        st.warning(f"⚠️ Database connection issue: {str(e)}")
+        logger.warning(f"Database connection warning: {str(e)}")
+        # Remove the st.stop() to allow the app to continue
+
+# First, let's test if we can even print to the screen
+st.write("Testing if we can even print to the screen. remove for production")
+
+# Continue with the rest of your app...
+st.title("Drug Interaction Dashboard")
+st.write("Search for a drug below to see its details and interactions.")
+
+# Add a try-catch block around the main app logic
+try:
+    # Create a container for the search interface
+    search_container = st.container()
+    
+    with search_container:
+        try:
+            # Create a text input for search
+            search_term = st.text_input(
+                "Search for a drug",
+                key="drug_search",
+                placeholder="Type to search..."
+            )
+            
+            if search_term:
+                # Search for drugs with error handling and limit results
+                try:
+                    matching_drugs = search_drugs(search_term)  # Will return up to 10 results
+                    
+                    if not matching_drugs.empty:
+                        st.success(f"Found {len(matching_drugs)} matching drugs")
+                        # Use selectbox for selecting from matches
+                        selected_drug = st.selectbox(
+                            "Select a drug from matches",
+                            options=matching_drugs['drug_name'].tolist(),
+                            key="drug_selector"
+                        )
+                        
+                        if selected_drug:
+                            # Create columns for layout
+                            col1, col2 = st.columns(2)
+                            
+                            with st.spinner('Loading drug data...'):
+                                try:
+                                    details_df = get_drug_details(selected_drug)
+                                    properties_df = get_drug_properties(selected_drug)
+                                    interactions_df = get_drug_interactions(selected_drug)
+                                    
+                                    # Display drug details
+                                    with col1:
+                                        st.subheader("Drug Details")
+                                        if not details_df.empty:
+                                            st.dataframe(details_df, use_container_width=True)
+                                        else:
+                                            st.info("No details available")
+                                        
+                                        st.subheader("Drug Properties")
+                                        if not properties_df.empty:
+                                            st.dataframe(properties_df, use_container_width=True)
+                                        else:
+                                            st.info("No properties available")
+                                    
+                                    with col2:
+                                        st.subheader("Drug Interactions")
+                                        if not interactions_df.empty:
+                                            st.dataframe(interactions_df, use_container_width=True)
+                                        else:
+                                            st.info("No interactions found")
+                                        
+                                        st.subheader("Network Visualization")
+                                        st.info("Network visualization coming soon")
+                                except Exception as e:
+                                    st.error(f"Error fetching drug data: {str(e)}")
+                                    logger.exception("Error in drug data retrieval")
+                    else:
+                        st.warning("No drugs found matching your search")
+                except Exception as e:
+                    st.error(f"Error searching drugs: {str(e)}")
+                    logger.exception("Error in drug search")
+            else:
+                # Show some initial popular drugs or instructions
+                st.info("Type a drug name to begin searching")
+                try:
+                    initial_drugs = search_drugs("").head(10)  # Get initial suggestions
+                    if not initial_drugs.empty:
+                        st.write("Popular drugs:")
+                        st.dataframe(initial_drugs[['drug_name', 'max_phase']], hide_index=True)
+                except Exception as e:
+                    logger.exception("Error loading initial drugs")
+        except Exception as e:
+            st.error(f"Error in search interface: {str(e)}")
+            logger.exception("Error in search interface")
+except Exception as e:
+    st.error(f"Application error: {str(e)}")
+    logger.exception("General application error")
+
+# Footer
+st.markdown("---")
+st.markdown("Drug Interaction Dashboard - Data from ChEMBL Database")
+
+# Debug information (only show in development)
+if os.getenv('STREAMLIT_ENV') == 'development':
+    if st.checkbox("Show Debug Info"):
+        st.write("Debug Information:")
+        st.write({
+            "Database URL": "****", # Don't expose connection string
+            "Search Term": search_term if 'search_term' in locals() else None,
+            "Selected Drug": selected_drug if 'selected_drug' in locals() else None
+        })

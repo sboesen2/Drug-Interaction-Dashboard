@@ -1,0 +1,10 @@
+streamlit
+pandas
+plotly
+networkx
+requests
+SQLAlchemy
+psycopg2-binary
+python-dotenv
+kaleido
+Pillow

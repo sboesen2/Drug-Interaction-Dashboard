@@ -90,3 +90,32 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Streamlit specific
+.streamlit/secrets.toml
+
+# Environment variables
+.env*
+*.env
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+.test_db.py
+
