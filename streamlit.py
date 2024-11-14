@@ -6,10 +6,8 @@ from api.data_queries import (
     get_drug_details,
     get_drug_properties,
     get_drug_interactions,
-    get_drug_structure,
     engine,
-    create_drug_interaction_network,
-    check_drug_structure_availability
+    create_drug_interaction_network
 )
 import logging
 from sqlalchemy import text
