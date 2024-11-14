@@ -10,8 +10,6 @@ from urllib.parse import quote_plus
 from pyvis.network import Network
 import tempfile
 import networkx as nx
-from rdkit import Chem
-from rdkit.Chem import Draw
 import streamlit as st
 
 # Load environment variables
@@ -399,54 +397,3 @@ def create_drug_interaction_network(selected_drug, interactions_df):
         logger.error(f"Error in network visualization: {str(e)}")
         logger.exception(e)
         return None
-
-@st.cache_data(ttl=3600)  # Cache for 1 hour
-def get_drug_structure(drug_name):
-    """Get SMILES structure for drug visualization"""
-    query = """
-    SELECT DISTINCT cs.canonical_smiles
-    FROM molecule_dictionary md
-    JOIN compound_structures cs ON md.molregno = cs.molregno
-    WHERE LOWER(md.pref_name) = LOWER(:drug_name)
-    LIMIT 1;
-    """
-    try:
-        with engine.connect() as conn:
-            result = conn.execute(
-                text(query),
-                {"drug_name": drug_name}
-            ).fetchone()
-            
-            if result and result[0]:
-                mol = Chem.MolFromSmiles(result[0])
-                if mol:
-                    img = Draw.MolToImage(mol)
-                    return img
-            else:
-                logger.debug(f"No SMILES found for drug: {drug_name}")
-    except Exception as e:
-        logger.error(f"Error getting structure: {e}")
-        logger.exception(e)
-    return None
-
-def check_drug_structure_availability(drug_name):
-    """Debug function to check SMILES availability"""
-    query = """
-    SELECT 
-        md.pref_name,
-        md.canonical_smiles
-    FROM molecule_dictionary md
-    WHERE LOWER(md.pref_name) = LOWER(:drug_name);
-    """
-    try:
-        with engine.connect() as conn:
-            result = conn.execute(
-                text(query),
-                {"drug_name": drug_name}
-            ).fetchone()
-            if result:
-                logger.debug(f"Found SMILES for {drug_name}: {result[1][:50]}...")
-            else:
-                logger.debug(f"No record found for {drug_name}")
-    except Exception as e:
-        logger.error(f"Error checking structure: {e}")
