@@ -44,7 +44,7 @@ DB_CONFIG = {
 
 # Add better error handling for missing environment variables
 required_env_vars = ['DB_USER', 'DB_PASSWORD', 'DB_HOST', 'DB_PORT', 'DB_NAME']
-missing_vars = [var for var in required_env_vars if not os.getenv(var)]
+missing_vars = [var for var in required_env_vars if not st.secrets["database"].get(var)]
 
 if missing_vars:
     error_msg = f"Missing required environment variables: {', '.join(missing_vars)}"
