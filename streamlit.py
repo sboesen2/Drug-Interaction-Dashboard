@@ -21,6 +21,13 @@ from plotly.subplots import make_subplots
 from io import BytesIO
 import base64
 
+# Load secrets
+db_user = st.secrets["database"]["DB_USER"]
+db_password = st.secrets["database"]["DB_PASSWORD"]
+db_host = st.secrets["database"]["DB_HOST"]
+db_port = st.secrets["database"]["DB_PORT"]
+db_name = st.secrets["database"]["DB_NAME"]
+
 # Configure logging
 logging.basicConfig(
     level=os.getenv('LOG_LEVEL', 'INFO'),

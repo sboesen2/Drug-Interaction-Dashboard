@@ -26,13 +26,20 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Database configuration - remove hardcoded values
+# Load secrets
+db_user = st.secrets["database"]["DB_USER"]
+db_password = st.secrets["database"]["DB_PASSWORD"]
+db_host = st.secrets["database"]["DB_HOST"]
+db_port = st.secrets["database"]["DB_PORT"]
+db_name = st.secrets["database"]["DB_NAME"]
+
+# Database configuration
 DB_CONFIG = {
-    'user': os.getenv('DB_USER'),
-    'password': os.getenv('DB_PASSWORD'),
-    'host': os.getenv('DB_HOST'),
-    'port': os.getenv('DB_PORT'),
-    'database': os.getenv('DB_NAME')
+    'user': db_user,
+    'password': db_password,
+    'host': db_host,
+    'port': db_port,
+    'database': db_name
 }
 
 # Add better error handling for missing environment variables
