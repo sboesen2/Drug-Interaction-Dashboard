@@ -26,12 +26,12 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Load secrets
-db_user = st.secrets["database"]["DB_USER"]
-db_password = st.secrets["database"]["DB_PASSWORD"]
-db_host = st.secrets["database"]["DB_HOST"]
-db_port = st.secrets["database"]["DB_PORT"]
-db_name = st.secrets["database"]["DB_NAME"]
+# Replace secrets loading with environment variables
+db_user = os.getenv("DB_USER")
+db_password = os.getenv("DB_PASSWORD")
+db_host = os.getenv("DB_HOST")
+db_port = os.getenv("DB_PORT")
+db_name = os.getenv("DB_NAME")
 
 # Database configuration
 DB_CONFIG = {
@@ -42,9 +42,9 @@ DB_CONFIG = {
     'database': db_name
 }
 
-# Add better error handling for missing environment variables
+# Update error handling for environment variables
 required_env_vars = ['DB_USER', 'DB_PASSWORD', 'DB_HOST', 'DB_PORT', 'DB_NAME']
-missing_vars = [var for var in required_env_vars if not st.secrets["database"].get(var)]
+missing_vars = [var for var in required_env_vars if not os.getenv(var)]
 
 if missing_vars:
     error_msg = f"Missing required environment variables: {', '.join(missing_vars)}"
@@ -122,7 +122,7 @@ def search_drugs(search_value):
     FROM molecule_dictionary md
     WHERE md.pref_name IS NOT NULL
       AND md.therapeutic_flag = 1
-      AND md.pref_name ILIKE %s
+      AND md.pref_name ILIKE :search_pattern
     ORDER BY 
         md.max_phase DESC,
         md.pref_name
@@ -133,7 +133,11 @@ def search_drugs(search_value):
         search_pattern = f"%{search_value}%"
         logger.debug(f"Searching with pattern: {search_pattern}")
         
-        df = pd.read_sql(query, engine, params=(search_pattern,))
+        # Use a connection to execute the query
+        with engine.connect() as connection:
+            result = connection.execute(text(query), {"search_pattern": search_pattern})
+            df = pd.DataFrame(result.fetchall(), columns=result.keys())
+        
         logger.debug(f"Search results for '{search_value}': {len(df)} matches")
         return df
     except SQLAlchemyError as e:
