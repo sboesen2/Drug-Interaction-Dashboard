@@ -1,3 +1,5 @@
+![Drug Dashboard](./image/Landing_Page.png)
+
 # Drug Interaction Dashboard 🧬
 
 ## Overview
